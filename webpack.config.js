@@ -22,9 +22,9 @@ module.exports = {
         test: /\.(png|jpe?g|gif)$/i,
         use: [
           {
-            loader: 'file-loader', // lub 'url-loader' w zale¿noœci od potrzeb
+            loader: 'file-loader',
             options: {
-              outputPath: 'assets', // Wybierz folder wyjœciowy dla obrazków
+              outputPath: 'assets',
             },
           },
         ],
@@ -34,7 +34,7 @@ module.exports = {
   plugins: [
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
-      title: 'Pixi.js Demo'
+      title: 'Slot App'
     }),
     new CopyPlugin({
         patterns: [
