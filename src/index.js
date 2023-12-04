@@ -235,7 +235,13 @@ const spinReels = () => {
             const winningRowIndexes = checkForWinningRows();
 
             if (winningRowIndexes.length > 0) {
-                winningRowIndexes.forEach(rowIndex => {
+                const distinctWinningRows = [...new Set(winningRowIndexes)];
+                if (distinctWinningRows.length === 3 || distinctWinningRows.length === 2) {
+                    playerPoints += distinctWinningRows.length;
+                    updatePlayerPoints();
+                }
+
+                distinctWinningRows.forEach(rowIndex => {
                     const winningRow = reels.map(reel => reel.children[rowIndex]);
 
                     winningRow.forEach(symbol => {
