@@ -1,13 +1,14 @@
 import * as PIXI from 'pixi.js';
 import TWEEN from '@tweenjs/tween.js';
 
-const app = new PIXI.Application({ width: window.innerWidth, height: 800 });
+const app = new PIXI.Application({ width: window.innerWidth -20, height: 800 });
 document.body.appendChild(app.view);
 app.renderer.backgroundColor = 0xa7afc1;
 
 let nickname = '';
 let randomizeCount = 0;
 let playerPoints = 0;
+let isLeverBlocked = false;
 
 const overlayDiv = document.createElement('div');
 overlayDiv.style.position = 'fixed';
@@ -104,7 +105,7 @@ new TWEEN.Tween(lever)
     .start();
 
 lever.on('pointerdown', () => {
-    if (!isLeverDown) {
+    if (!isLeverDown && !isLeverBlocked) {
         isLeverDown = true;
 
         new TWEEN.Tween(lever)
@@ -120,6 +121,10 @@ lever.on('pointerdown', () => {
                         .start()
                         .onComplete(() => {
                             isLeverDown = false;
+                            isLeverBlocked = true;
+                            setTimeout(() => {
+                                isLeverBlocked = false;
+                            }, 1500);
                         });
                 }, 1000);
             });
@@ -164,7 +169,79 @@ function updatePlayerPoints() {
     pointsText.name = 'pointsText';
     pointsText.position.set(lever.x - 50, lever.y + 130);
     app.stage.addChild(pointsText);
+
+    if (playerPoints > 0) {
+        showWinPopup();
+    }
 }
+
+function showWinPopup() {
+    const winText = new PIXI.Text('WIN!', {
+        fontFamily: 'Arial',
+        fontSize: 50,
+        fill: 'gold',
+        letterSpacing: 5,
+    });
+    winText.position.set(app.renderer.width / 2 + 350, app.renderer.height / 2 - 50);
+    app.stage.addChild(winText);
+
+    setTimeout(() => {
+        app.stage.removeChild(winText);
+    }, 1500);
+
+    const totalFireworks = 300;
+    const fireworks = [];
+    const colors = [0xffffff, 0x00ff00, 0xff0000, 0xffff00, 0x800080];
+
+    for (let i = 0; i < totalFireworks; i++) {
+        const firework = new PIXI.Graphics();
+        const color = colors[Math.floor(Math.random() * colors.length)];
+
+        firework.beginFill(color);
+        firework.drawRect(0, 0, 5, 5);
+        firework.endFill();
+        firework.x = app.renderer.width / 2;
+        firework.y = app.renderer.height;
+        app.stage.addChild(firework);
+        fireworks.push({ obj: firework, vx: 0, vy: 0 });
+    }
+
+
+    fireworks.forEach((fireworkData) => {
+        const firework = fireworkData.obj;
+        const delay = Math.random() * 500;
+
+        setTimeout(() => {
+            const explosionPower = Math.random() * 12 + 1;
+            const explosionAngle = Math.random() * Math.PI * 6;
+
+            fireworkData.vx = Math.cos(explosionAngle) * explosionPower;
+            fireworkData.vy = Math.sin(explosionAngle) * explosionPower;
+
+            const gravity = 0.1;
+
+            const update = () => {
+                fireworkData.vx *= 0.99;
+                fireworkData.vy += gravity;
+                firework.x += fireworkData.vx;
+                firework.y += fireworkData.vy;
+
+                if (firework.y >= app.renderer.height) {
+                    firework.alpha = 0;
+                    firework.visible = false;
+                }
+            };
+
+            const animate = () => {
+                update();
+                requestAnimationFrame(animate);
+            };
+
+            animate();
+        }, delay);
+    });
+}
+
 
 function hideOverlayAndSetNickname() {
     nickname = input.value.trim();
